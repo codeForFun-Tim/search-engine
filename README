@@ -1,9 +1,8 @@
-Team G22:
-1) The full names and SEAS login names of all the project members
-Sanjna Kashyap	sanjnak
-Haohua Lyu		haohua
-Yuguang Qi		timqi
-Yuting Tan			ytan43
+This is a project of team of four: 
+Sanjna Kashyap	
+Haohua Lyu		
+Yuguang Qi		
+Yuting Tan			
 
 
 2) A description of all features implemented
@@ -32,9 +31,7 @@ Frontend:
 	The frontend app is built on sparkJava with Apache Velocity templates. It also has codes for accessing DynamoDB data in case the indexer's REST API is not on.
 	The frontend retrieves both indexing data and pagerank data, and calculate a final score using weighted harmonic mean. Finally it presents the results within the page range.
 
-3) any extra credit claimed
-
-4) a list of source files included
+3) a list of source files included
 Crawler:
 For the crawler:
 CrawlBolt.java
@@ -74,7 +71,7 @@ css (from skeleton)
 search.vm
 splash.vm
 
-5) detailed instructions on how to install and run the project
+4) detailed instructions on how to install and run the project
 Crawler:
 For master:
 mvn exec:java@Master
