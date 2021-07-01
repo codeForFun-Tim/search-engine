@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Search Engine</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <div class="row">
+      <div class="one-half column">
+        <h4>CIS455/555 Search Engine</h4>
+        <p>Try Search Something!</p>
+      </div>
+    </div>
+    <div class="row">
+    	<form action="/search" method="GET">
+  			<div class="row">
+    			<div class="nine columns">
+      				<input class="u-full-width" type="text" name="key" value="$key">
+    			</div>
+    			<div class="three columns">
+      				<input class="button-primary" type="submit" value="Submit">
+    			</div>
+  			</div>
+		</form>
+    </div>
+    
+    #foreach($result in $ranked)
+    	<div class="row">
+    		<h5><a href="$result.getLink()">$result.getTitle()</a></h5>
+    	</div>
+    	<div class="row">
+    		<h6>$result.getLink()</h6>
+    	</div>
+    	<div class="row">
+    		<p>$result.getBody()</p>
+    	</div>
+    	#if($isDebug == true)
+    	<div class="row">
+    		<p>Debug: tfidf: $result.getTfidf(), <br> pageRank: $result.getPageRank(), <br> harmonic: $result.getHarmonic()</p>
+    	</div>
+    	#else
+    	#end
+    #end
+    
+    <div class="row">
+    	<div class="two columns">
+    		#if($isFirstPage == false)
+    			<a class="button" href="/search?page=$prev&key=$key">Previous Page</a>
+    		#else
+    		#end
+    	</div>
+    	<div class="two columns">
+    		#if($isLastPage == false)
+    			<a class="button" href="/search?page=$next&key=$key">Next Page</a>
+    		#else
+    		#end
+    	</div>
+    </div>
+    
+  </div>
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>

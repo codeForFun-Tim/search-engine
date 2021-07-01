@@ -1,0 +1,107 @@
+Team G22:
+1) The full names and SEAS login names of all the project members
+Sanjna Kashyap	sanjnak
+Haohua Lyu		haohua
+Yuguang Qi		timqi
+Yuting Tan			ytan43
+
+
+2) A description of all features implemented
+Crawler:
+	The crawler has two parts: a crawler based on hw2 code with stormlite package; a master node based on sparkJava.
+	In the crawler: URLspout for remote fetching of urls, Crawl bolt for crawling & uploading to S3 bucket,
+	Parser bolt for extracting links and updating master with <url, outgoing_url>, and Filter Bolt for checking desirable links and updating master with new desirable links.
+	For the master: the master is responsible for keeping a frontier queue & a url-seen list; it also keeps a map of <url, <outgoing urls>>.
+	Through the REST API, crawlers can update the master with different kinds of info and the master will write to memory & local text files.
+	There's also a path for the PageRank to download the <url, <outgoing url>> text info.
+Indexer:
+	The indexer is implemented by Apache Hadoop 2.8.1.In the Indexer, Mapper parses the HTML body, removes stopwords  and stems words with Porter Stemmer.
+	TF-scores are calculated in mappers. Reducer concatenates the information of each word and sends the result to S3.
+	We used EMR to run MapReduce and store the result to an S3 bucket. If there are newly crawled pages, put them in a seperate folder in S3 and run the indexer again.
+	It can combine the results of several runs together using a small MapReduce.
+	Then, a multithreaded uploader transfers data from S3 to DynamoDB. TF-IDF is calculated when a query comes in.
+
+PageRank:
+	PageRank has been implemented using Apache Spark. The input data is pre-processed into RDDs and three jobs are run on it.
+	In the first job, the mapper calculates contributions by backlinks to urls, and the reducer finds the sum and applies damping factor.
+	In the second job, a join is performed to get rid of dangling URLs and a mapper retrieves pertinent info from the RDD to get <url, pagerank>
+	In the third job, all scores are normalized.
+	In addition to this, a server with REST API to get EMR output files from S3 and return them has been implemented.
+
+Frontend:
+	The frontend app is built on sparkJava with Apache Velocity templates. It also has codes for accessing DynamoDB data in case the indexer's REST API is not on.
+	The frontend retrieves both indexing data and pagerank data, and calculate a final score using weighted harmonic mean. Finally it presents the results within the page range.
+
+3) any extra credit claimed
+
+4) a list of source files included
+Crawler:
+For the crawler:
+CrawlBolt.java
+FilterBolt.java
+ParserBolt.java
+URLSpout.java
+XpathCrawler.java
+HTTPClinet.java
+S3Wrapper.java
+(Other supportive classes: DBWrapper.java, DocInfo.java, RobotsTxtInfo.java, URLInfo.java)
+(The stormlite package from hw2)
+For the master:
+Master.java
+
+Indexer:
+CombineMapReduceResult.java
+IndexMain.java
+InvertedIndex.java
+MultithreadUpload.java
+PorterStemmer.java
+StopWords.java
+UploadToDynamo.java
+WholeFileInputFormat.java
+WholeFileRecordReader.java
+
+PageRank:
+- PagerankApp.java
+- PagerankMain.java
+
+Frontend:
+In java folder:
+FrontendApp.java
+LinkInfo.java
+PorterStemmer.java
+In resources/public folder:
+css (from skeleton)
+search.vm
+splash.vm
+
+5) detailed instructions on how to install and run the project
+Crawler:
+For master:
+mvn exec:java@Master
+For crawler:
+Need to modify S3Wrapper for S3 access credentials
+Also, need to modify master's ip address in URLSpout, ParserBolt, FIlterBolt if master's ip is changed
+FInally, follow hw2 running instruction: mvn exec:java@Crawler -Dexec.args="www.foo.com BDB 1"
+args[0] - seed url, args[1] - BDB location, args[2] - max file size in MB
+
+Indexer:
+Export a runnable jar to run InvertedIndex.java on Amazon EMR.
+Add AWS CLI credentials file to your computer. The file should be located at ~/.aws/credentials on Linux or macOS, or at C:\Users\USERNAME\.aws\credentials on Windows.
+If the Indexer runs multiple time on different clusters of pages, the indexer can combine those results together.
+Move all desired inputs into one S3 folder. Export a runnable jar to run CombineMapReduceResult.java on Amazon EMR.
+Then,  run MultithreadUpload.java on an EC2 instance or a local VM by given an S3 bucket name: java -jar MultithreadUpload.java S3_bucket_name
+To get TF-IDF weights of pages, export a runnable jar to run IndexMain.java on an EC2 instance: nohup java -jar IndexMain.java total_number_of_crawled_pages
+
+PageRank:
+- PagerankApp.java
+Add AWS CLI credentials file to your computer. The file should be located at ~/.aws/credentials on Linux or macOS, or at C:\Users\USERNAME\.aws\credentials on Windows.
+Run on EC2 instance. Edit names of bucket and file locations inside the function.
+- PagerankMain.java:
+Accepts two arguments <input_location> <output_location>. Saves PageRank scores as text files. This is the class submitted to EMR.
+Export runnable JAR to run on EMR, and add as Spark application, providing S3 file locations.
+
+Frontend:
+Need AWS credential; should be put in ~/.aws/credentials if on EC2.
+Also need to put PageRank cache in /pagerankscores as text files
+mvn exec:java@FrontendApp -Dexec.args="32000 1"
+args[0] - number of total pages crawled, args[1] - optional, put in anything to run in debug mode
